@@ -13,6 +13,8 @@
 #endif
 #include "MicroGlut.h"
 #include "GL_utilities.h"
+#include <math.h>
+#include <stdio.h>
 
 // Globals
 // Data would normally be read from files
@@ -25,10 +27,22 @@ GLfloat vertices[] =
 
 GLfloat color[] =
 {
- 0.2f, 0.2f, 1.0f, 0.0f,
- 0.2f, 0.2f, 1.0f, 0.0f,
- 0.2f, 0.2f, 1.0f, 0.0f,
+ 0.0f, 0.2f, 1.0f, 0.0f,
+ 0.0f, 0.2f, 1.0f, 0.0f,
+ 0.0f, 0.2f, 1.0f, 0.0f
 };
+
+GLfloat myMatrix[] = {  1.0f, 0.0f, 0.0f, 0.0f,
+
+						0.0f, 1.0f, 0.0f, 0.0f,
+
+						0.0f, 0.0f, 1.0f, 0.0f,
+
+						0.0f, 0.0f, 0.0f, 1.0f };
+
+GLfloat t;
+GLuint program;
+
 
 // vertex array object
 unsigned int vertexArrayObjID;
@@ -39,17 +53,16 @@ void init(void)
 	unsigned int vertexBufferObjID;
 	unsigned int colorBufferObjID;
 	// Reference to shader program
-	GLuint program;
 
 	dumpInfo();
 
 	// GL inits
-	glClearColor(0.8,0.1,0,0);
+	glClearColor(0.0,0.1,0,0);
 	glDisable(GL_DEPTH_TEST);
 	printError("GL inits");
 
 	// Load and compile shader
-	program = loadShaders("lab1-1.vert", "lab1-1.frag");
+	program = loadShaders("lab1-3.vert", "lab1-3.frag");
 	printError("init shader");
 
 	// Upload geometry to the GPU:
@@ -72,6 +85,7 @@ void init(void)
 	glVertexAttribPointer(glGetAttribLocation(program, "color"), 4, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(glGetAttribLocation(program, "color"));
 
+
 	// End of upload of geometry
 
 	printError("init arrays");
@@ -91,6 +105,19 @@ void display(void)
 	printError("display");
 
 	glutSwapBuffers();
+	t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
+	myMatrix[0] = cos(0.001*t);
+	myMatrix[1] = -1*sin(0.001*t);
+	myMatrix[4] = sin(0.001*t);
+	myMatrix[5] = cos(0.001*t);
+	myMatrix[3] = sin(0.002*t);
+	glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, myMatrix);
+}
+
+void OnTimer(int value)
+{
+    glutPostRedisplay();
+    glutTimerFunc(20, &OnTimer, value);
 }
 
 int main(int argc, char *argv[])
@@ -100,6 +127,7 @@ int main(int argc, char *argv[])
 	glutCreateWindow ("GL3 white triangle example");
 	glutDisplayFunc(display);
 	init ();
+	OnTimer(0);
 	glutMainLoop();
 	return 0;
 }

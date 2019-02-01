@@ -25,10 +25,18 @@ GLfloat vertices[] =
 
 GLfloat color[] =
 {
- 0.2f, 0.2f, 1.0f, 0.0f,
- 0.2f, 0.2f, 1.0f, 0.0f,
- 0.2f, 0.2f, 1.0f, 0.0f,
+ 1.0f, 0.2f, 1.0f, 0.0f,
+ 0.0f, 0.2f, 1.0f, 0.0f,
+ 0.0f, 0.2f, 1.0f, 0.0f
 };
+
+GLfloat myMatrix[] = {  0.6f, 0.0f, 0.0f, 0.0f,
+
+                        0.0f, 0.6f, 0.0f, 0.0f,
+
+                        0.0f, 0.0f, 1.0f, 0.0f,
+
+                        0.0f, 0.0f, 0.0f, 1.0f };
 
 // vertex array object
 unsigned int vertexArrayObjID;
@@ -44,12 +52,12 @@ void init(void)
 	dumpInfo();
 
 	// GL inits
-	glClearColor(0.8,0.1,0,0);
+	glClearColor(0.0,0.1,0,0);
 	glDisable(GL_DEPTH_TEST);
 	printError("GL inits");
 
 	// Load and compile shader
-	program = loadShaders("lab1-1.vert", "lab1-1.frag");
+	program = loadShaders("lab1-2.vert", "lab1-2.frag");
 	printError("init shader");
 
 	// Upload geometry to the GPU:
@@ -71,6 +79,8 @@ void init(void)
 	glBufferData(GL_ARRAY_BUFFER, 12*sizeof(GLfloat), color, GL_STATIC_DRAW);
 	glVertexAttribPointer(glGetAttribLocation(program, "color"), 4, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(glGetAttribLocation(program, "color"));
+
+	glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, myMatrix);
 
 	// End of upload of geometry
 
