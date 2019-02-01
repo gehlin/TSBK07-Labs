@@ -24,6 +24,7 @@
 GLfloat t;
 GLuint program;
 Model *m;
+GLuint tex;
 
 // vertex array object
 unsigned int bunnyVertexArrayObjID;
@@ -48,7 +49,7 @@ void init(void)
 	printError("GL inits");
 
 	// Load and compile shader
-	program = loadShaders("lab2-1.vert", "lab2-1.frag");
+	program = loadShaders("lab2-2.vert", "lab2-2.frag");
 	printError("init shader");
 
 	//
@@ -67,7 +68,7 @@ void init(void)
 	   	glVertexAttribPointer(glGetAttribLocation(program, "inTexCoord"), 2
 			, GL_FLOAT, GL_FALSE, 0, 0);
 	   	glEnableVertexAttribArray(glGetAttribLocation(program, "inTexCoord"));
-   	}
+	}
 
 	// VBO for vertex data
     glBindBuffer(GL_ARRAY_BUFFER, bunnyVertexBufferObjID);
@@ -91,6 +92,12 @@ void init(void)
 
 	// End of upload of geometry
 
+	// Texture
+	LoadTGATextureSimple("maskros512.tga", &tex);
+	glBindTexture(GL_TEXTURE_2D, tex);
+	glUniform1i(glGetUniformLocation(program, "in_texUnit"), 0);
+
+
 	printError("init arrays");
 }
 
@@ -102,10 +109,9 @@ void display(void)
 	// clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
 	//transformations
 	glUniformMatrix4fv(glGetUniformLocation(program, "rotMat"), 1, GL_TRUE
-		, Ry(PI/2).m);
+		, Ry(0.001*t).m);
 	glBindVertexArray(bunnyVertexArrayObjID);    // Select VAO
     glDrawElements(GL_TRIANGLES, m->numIndices, GL_UNSIGNED_INT, 0L);
 
@@ -113,7 +119,7 @@ void display(void)
 
 	glutSwapBuffers();
 	t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
-	glUniform1f(glGetUniformLocation(program, "in_time"),t);
+	glUniform1f(glGetUniformLocation(program, "time"),t);
 
 }
 

@@ -2,11 +2,12 @@
 
 in vec4 colorv;
 in vec2 texCoordv;
-out vec4 out_Color;
-out vec2 out_TexCoord;
+in float time;
+out vec4 outColor;
 
 void main(void)
 {
-	out_Color = colorv;
-	out_TexCoord = texCoordv;
+	float a = sin(texCoordv.s*0.001*time);
+	float b = sin(texCoordv.t*0.001*time);
+	outColor = vec4(a, a, a, 0.0);
 }
