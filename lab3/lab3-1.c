@@ -15,7 +15,6 @@
 #include "MicroGlut.h"
 #include "GL_utilities.h"
 #include <math.h>
-#include <stdio.h>
 #include "loadobj.h"
 #include "VectorUtils3.h"
 
@@ -41,17 +40,8 @@ GLuint texRoof;
 GLuint texBalcony;
 GLuint texBlade;
 
-// vertex array object
-unsigned int WallsVertexArrayObjID;
-
-mat4 modelToWorldWalls;
-mat4 modelToWorldRoof;
-mat4 modelToWorldBalcony;
-mat4 modelToWorldBladeBot;
-mat4 modelToWorldBladeLeft;
-mat4 modelToWorldBladeTop;
-mat4 modelToWorldBladeRight;
-mat4 cameraRotation;
+mat4 mwWalls, mwRoof, mwBalcony, mwBladeBot, mwBladeLeft, mwBladeTop
+	, mwBladeRight;
 mat4 worldToProj;
 mat4 projectionMatrix;
 mat4 wv;
@@ -67,15 +57,14 @@ void init(void)
 	mBladeTop = mBladeBot;
 	mBladeRight = mBladeBot;
 
-
 	dumpInfo();
 
 	// GL inits
-	glClearColor(0.3,0.3,0.0,0);
+	glClearColor(0.3,0.3,0.3,0);
 
-	glDisable(GL_CULL_FACE);
+	//glDisable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
-	//glCullFace(GL_FRONT);
+	glCullFace(GL_FRONT);
 	printError("GL inits");
 
 	// Load and compile shader
@@ -83,21 +72,20 @@ void init(void)
 	printError("init shader");
 
 	// Texture
-	LoadTGATextureSimple("conc.tga", &texWalls);
-	LoadTGATextureSimple("bilskissred.tga", &texRoof);
-
+	LoadTGATextureSimple("dirt.tga", &texWalls);
+	LoadTGATextureSimple("dirt.tga", &texRoof);
 
 	float rotTot = -PI/2;
 	float transTot = -9;
 	//Transformations
 	mat4 bladeRotFixed = Rz(-PI/2);
-	modelToWorldWalls   = Mult(Ry(rotTot), T(0,transTot,0));
-	modelToWorldRoof    = Mult(Ry(rotTot), T(0,transTot,0));
-	modelToWorldBalcony = Mult(Ry(rotTot), T(0,transTot,0));
-	modelToWorldBladeBot   = Mult(T(0,0,0), Ry(rotTot));
-	modelToWorldBladeLeft = Mult(bladeRotFixed, modelToWorldBladeBot);
-	modelToWorldBladeTop = Mult(bladeRotFixed, modelToWorldBladeLeft);
-	modelToWorldBladeRight = Mult(bladeRotFixed, modelToWorldBladeTop);
+	mwWalls = Mult(Ry(rotTot), T(0,transTot,0));
+	mwRoof = Mult(Ry(rotTot), T(0,transTot,0));
+	mwBalcony = Mult(Ry(rotTot), T(0,transTot,0));
+	mwBladeBot = Mult(T(0,0,0), Ry(rotTot));
+	mwBladeLeft = Mult(bladeRotFixed, modelToWorldBladeBot);
+	mwBladeTop = Mult(bladeRotFixed, modelToWorldBladeLeft);
+	mwBladeRight = Mult(bladeRotFixed, modelToWorldBladeTop);
 
 
 	projectionMatrix = frustum(left, right, bottom, top, near, far);
@@ -113,16 +101,11 @@ void init(void)
 void display(void)
 {
 	printError("pre display");
+	t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
 
-	//cameraRotation = Ry(0.001*t);
-	//mat4 worldToProj =Mult(projectionMatrix, Mult(wv, cameraRotation));
 	mat4 worldToProj =Mult(projectionMatrix, wv);
 	glUniformMatrix4fv(glGetUniformLocation(program, "worldToProj"), 1, GL_TRUE
 		, worldToProj.m);
-
-	mat4 rotAnimation = Ry(0.001*t);
-	glUniformMatrix4fv(glGetUniformLocation(program, "rotAnim")
-		, 1, GL_TRUE, rotAnimation.m);
 
 	bladeRot = IdentityMatrix();
 	glUniformMatrix4fv(glGetUniformLocation(program, "bladeRot")
@@ -132,21 +115,18 @@ void display(void)
 	//glClear(GL_COLOR_BUFFER_BIT);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glBindVertexArray(WallsVertexArrayObjID);
-
-
-	glUniformMatrix4fv(glGetUniformLocation(program, "modelToWorld")
-		, 1, GL_TRUE, modelToWorldWalls.m);
+	glUniformMatrix4fv(glGetUniformLocation(program, "mw")
+		, 1, GL_TRUE, mwWalls.m);
 	DrawModel(mWalls, program, "in_Position"
 			, "in_Normal", "inTexCoord");
 
-	glUniformMatrix4fv(glGetUniformLocation(program, "modelToWorld")
-		, 1, GL_TRUE, modelToWorldRoof.m);
+	glUniformMatrix4fv(glGetUniformLocation(program, "mw")
+		, 1, GL_TRUE, mwRoof.m);
 	DrawModel(mRoof, program, "in_Position"
 		, "in_Normal", "inTexCoord");
 
-	glUniformMatrix4fv(glGetUniformLocation(program, "modelToWorld")
-		, 1, GL_TRUE, modelToWorldBalcony.m);
+	glUniformMatrix4fv(glGetUniformLocation(program, "mw")
+		, 1, GL_TRUE, mwBalcony.m);
 	DrawModel(mBalcony, program, "in_Position"
 		, "in_Normal", "inTexCoord");
 
@@ -157,34 +137,28 @@ void display(void)
 	glUniformMatrix4fv(glGetUniformLocation(program, "bladeRot")
 		, 1, GL_TRUE, bladeRot.m);
 
-	glUniformMatrix4fv(glGetUniformLocation(program, "modelToWorld")
-		, 1, GL_TRUE, modelToWorldBladeBot.m);
+	glUniformMatrix4fv(glGetUniformLocation(program, "mw")
+		, 1, GL_TRUE, mwBladeBot.m);
 	DrawModel(mBladeBot, program, "in_Position"
 		, "in_Normal", "inTexCoord");
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "modelToWorld")
-		, 1, GL_TRUE, modelToWorldBladeLeft.m);
+		, 1, GL_TRUE, mwBladeLeft.m);
 	DrawModel(mBladeLeft, program, "in_Position"
 		, "in_Normal", "inTexCoord");
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "modelToWorld")
-		, 1, GL_TRUE, modelToWorldBladeTop.m);
+		, 1, GL_TRUE, mwBladeTop.m);
 	DrawModel(mBladeTop, program, "in_Position"
 		, "in_Normal", "inTexCoord");
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "modelToWorld")
-		, 1, GL_TRUE, modelToWorldBladeRight.m);
+		, 1, GL_TRUE, mwBladeRight.m);
 	DrawModel(mBladeRight, program, "in_Position"
 		, "in_Normal", "inTexCoord");
 
-
-
 	printError("display");
-
 	glutSwapBuffers();
-	t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
-	//glUniform1f(glGetUniformLocation(program, "time"),t);
-
 }
 
 void OnTimer(int value)

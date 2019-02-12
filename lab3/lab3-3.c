@@ -36,7 +36,10 @@ Model *mBladeBot;
 Model *mBladeLeft;
 Model *mBladeTop;
 Model *mBladeRight;
-Model *mGround;
+GLuint texWalls;
+GLuint texRoof;
+GLuint texBalcony;
+GLuint texBlade;
 
 // vertex array object
 unsigned int WallsVertexArrayObjID;
@@ -48,7 +51,6 @@ mat4 modelToWorldBladeBot;
 mat4 modelToWorldBladeLeft;
 mat4 modelToWorldBladeTop;
 mat4 modelToWorldBladeRight;
-mat4 modelToWorldGround;
 mat4 cameraRotation;
 mat4 worldToProj;
 mat4 projectionMatrix;
@@ -86,11 +88,9 @@ void controlFromKeyboard(vec3 *camPlacement)
 
 void init(void)
 {
-
-	vec3 tempCam = {0,0,30};
+	vec3 tempCam = {0,0,35};
 	camPlacement = tempCam;
 
-	mGround = LoadModelPlus("Rockwall.obj");
 	mWalls = LoadModelPlus("windmill-walls.obj");
 	mRoof = LoadModelPlus("windmill-roof.obj");
 	mBalcony = LoadModelPlus("windmill-balcony.obj");
@@ -111,13 +111,18 @@ void init(void)
 	printError("GL inits");
 
 	// Load and compile shader
-	program = loadShaders("lab3-3.vert", "lab3-3.frag");
+	program = loadShaders("lab3-2.vert", "lab3-2.frag");
 	printError("init shader");
+
+	// Texture
+	LoadTGATextureSimple("conc.tga", &texWalls);
+	LoadTGATextureSimple("bilskissred.tga", &texRoof);
+
 
 	float rotTot = -PI/2;
 	float transTot = -9;
 	//Transformations
-	mat4 bladeRotFixed = Rz(-PI/2);;
+	mat4 bladeRotFixed = Rz(-PI/2);
 	modelToWorldWalls   = Mult(Ry(rotTot), T(0,transTot,0));
 	modelToWorldRoof    = Mult(Ry(rotTot), T(0,transTot,0));
 	modelToWorldBalcony = Mult(Ry(rotTot), T(0,transTot,0));
@@ -125,9 +130,6 @@ void init(void)
 	modelToWorldBladeLeft = Mult(bladeRotFixed, modelToWorldBladeBot);
 	modelToWorldBladeTop = Mult(bladeRotFixed, modelToWorldBladeLeft);
 	modelToWorldBladeRight = Mult(bladeRotFixed, modelToWorldBladeTop);
-
-	modelToWorldGround  = Mult(T(0,0,-10),Rx(3*PI/2));
-
 
 	printError("init arrays");
 }
@@ -140,7 +142,7 @@ void display(void)
 	vec3 *camPointer = &camPlacement;
 	vec3 pointToLookAt = {0,0,0};
 	vec3 upVector = {0,1,0};
-	controlFromKeyboard(camPointer);
+	//controlFromKeyboard(camPointer);
 	wv = lookAtv(camPlacement, pointToLookAt, upVector);
 
 
@@ -162,11 +164,6 @@ void display(void)
 
 	glBindVertexArray(WallsVertexArrayObjID);
 
-
-	glUniformMatrix4fv(glGetUniformLocation(program, "modelToWorld")
-		, 1, GL_TRUE, modelToWorldGround.m);
-	DrawModel(mGround, program, "in_Position"
-			, "in_Normal", "inTexCoord");
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "modelToWorld")
 		, 1, GL_TRUE, modelToWorldWalls.m);
