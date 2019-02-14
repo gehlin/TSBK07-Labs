@@ -62,9 +62,9 @@ void init(void)
 	// GL inits
 	glClearColor(0.3,0.3,0.3,0);
 
-	//glDisable(GL_CULL_FACE);
+	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
-	glCullFace(GL_FRONT);
+	//glCullFace(GL_FRONT);
 	printError("GL inits");
 
 	// Load and compile shader
@@ -74,6 +74,7 @@ void init(void)
 	// Texture
 	LoadTGATextureSimple("dirt.tga", &texWalls);
 	LoadTGATextureSimple("dirt.tga", &texRoof);
+	LoadTGATextureSimple("grass.tga", &texBlade);
 
 	float rotTot = -PI/2;
 	float transTot = -9;
@@ -83,17 +84,16 @@ void init(void)
 	mwRoof = Mult(Ry(rotTot), T(0,transTot,0));
 	mwBalcony = Mult(Ry(rotTot), T(0,transTot,0));
 	mwBladeBot = Mult(T(0,0,0), Ry(rotTot));
-	mwBladeLeft = Mult(bladeRotFixed, modelToWorldBladeBot);
-	mwBladeTop = Mult(bladeRotFixed, modelToWorldBladeLeft);
-	mwBladeRight = Mult(bladeRotFixed, modelToWorldBladeTop);
+	mwBladeLeft = Mult(bladeRotFixed, mwBladeBot);
+	mwBladeTop = Mult(bladeRotFixed, mwBladeLeft);
+	mwBladeRight = Mult(bladeRotFixed, mwBladeTop);
 
 
 	projectionMatrix = frustum(left, right, bottom, top, near, far);
-	vec3 camPlacement = {0,0,30};
+	vec3 camPlacement = {0,0,-20};
 	vec3 pointToLookAt = {0,0,0};
 	vec3 upVector = {0,1,0};
 	wv = lookAtv(camPlacement, pointToLookAt, upVector);
-
 
 	printError("init arrays");
 }
@@ -117,21 +117,30 @@ void display(void)
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "mw")
 		, 1, GL_TRUE, mwWalls.m);
+	glBindTexture(GL_TEXTURE_2D, texWalls);
+	glUniform1i(glGetUniformLocation(program, "in_texUnit"), 0);
 	DrawModel(mWalls, program, "in_Position"
 			, "in_Normal", "inTexCoord");
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "mw")
 		, 1, GL_TRUE, mwRoof.m);
+	glBindTexture(GL_TEXTURE_2D, texRoof);
+	glUniform1i(glGetUniformLocation(program, "in_texUnit"), 0);
 	DrawModel(mRoof, program, "in_Position"
 		, "in_Normal", "inTexCoord");
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "mw")
 		, 1, GL_TRUE, mwBalcony.m);
+	glBindTexture(GL_TEXTURE_2D, texBalcony);
+	glUniform1i(glGetUniformLocation(program, "in_texUnit"), 0);
 	DrawModel(mBalcony, program, "in_Position"
 		, "in_Normal", "inTexCoord");
 
 
 	//BLADES
+
+	glBindTexture(GL_TEXTURE_2D, texBlade);
+	glUniform1i(glGetUniformLocation(program, "in_texUnit"), 0);
 
 	bladeRot = Mult(Rz(0.001*t), T(0,0,5));
 	glUniformMatrix4fv(glGetUniformLocation(program, "bladeRot")
@@ -139,20 +148,21 @@ void display(void)
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "mw")
 		, 1, GL_TRUE, mwBladeBot.m);
+
 	DrawModel(mBladeBot, program, "in_Position"
 		, "in_Normal", "inTexCoord");
 
-	glUniformMatrix4fv(glGetUniformLocation(program, "modelToWorld")
+	glUniformMatrix4fv(glGetUniformLocation(program, "mw")
 		, 1, GL_TRUE, mwBladeLeft.m);
 	DrawModel(mBladeLeft, program, "in_Position"
 		, "in_Normal", "inTexCoord");
 
-	glUniformMatrix4fv(glGetUniformLocation(program, "modelToWorld")
+	glUniformMatrix4fv(glGetUniformLocation(program, "mw")
 		, 1, GL_TRUE, mwBladeTop.m);
 	DrawModel(mBladeTop, program, "in_Position"
 		, "in_Normal", "inTexCoord");
 
-	glUniformMatrix4fv(glGetUniformLocation(program, "modelToWorld")
+	glUniformMatrix4fv(glGetUniformLocation(program, "mw")
 		, 1, GL_TRUE, mwBladeRight.m);
 	DrawModel(mBladeRight, program, "in_Position"
 		, "in_Normal", "inTexCoord");
