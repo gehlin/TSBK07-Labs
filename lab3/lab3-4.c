@@ -26,9 +26,32 @@
 #define top 0.5
 #define bottom -0.5
 
+vec3 lightSourcesColorsArr[] = { {1.0f, 0.0f, 0.0f}, // Red light
+
+                                 {0.0f, 1.0f, 0.0f}, // Green light
+
+                                 {0.0f, 0.0f, 1.0f}, // Blue light
+
+                                 {1.0f, 1.0f, 1.0f} }; // White light
+
+GLint isDirectional[] = {0,0,1,1};
+
+vec3 lightSourcesDirectionsPositions[] = { {10.0f, 5.0f, 0.0f}, // Red light, positional
+
+                                       {0.0f, 5.0f, 10.0f}, // Green light, positional
+
+                                       {-1.0f, 0.0f, 0.0f}, // Blue light along X
+
+                                       {0.0f, 0.0f, -1.0f} }; // White light along Z
+
+GLfloat specularExponent[] = {100.0, 200.0, 60.0, 50.0, 300.0, 150.0, 60.0, 50.0, 300.0, 150.0};
+
+
+
 GLfloat t;
 GLuint program;
 GLuint programSkybox;
+
 Model *mWalls;
 Model *mRoof;
 Model *mBalcony;
@@ -151,8 +174,8 @@ void init(void)
 	printError("GL inits");
 
 	// Load and compile shader
-	program = loadShaders("lab3-3.vert", "lab3-3.frag");
-	programSkybox = loadShaders("lab3-3skyBox.vert", "lab3-3skyBox.frag");
+	program = loadShaders("lab3-4.vert", "lab3-4.frag");
+	programSkybox = loadShaders("lab3-4skyBox.vert", "lab3-4skyBox.frag");
 	printError("init shader");
 
 	// Texture
@@ -164,7 +187,7 @@ void init(void)
 	LoadTGATextureSimple("SkyBox512.tga", &texSkybox);
 	LoadTGATextureSimple("grass.tga", &texFloor);
 
-	float rotTot = -PI/2;
+	float rotTot = 3*PI/2;
 	float transTot = -9;
 	//Transformations
 	mat4 bladeRotFixed = Rz(-PI/2);
@@ -221,9 +244,20 @@ void display(void)
 	DrawModel(mSkybox, programSkybox, "in_Position"
 			, NULL, "inTexCoord");
 
+
 	glUseProgram(program);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
+
+	glUniform3fv(glGetUniformLocation(program, "lightSourcesDirPosArr"), 4, &lightSourcesDirectionsPositions);
+
+	glUniform3fv(glGetUniformLocation(program, "lightSourcesColorArr"), 4, &lightSourcesColorsArr);
+
+	glUniform1f(glGetUniformLocation(program, "specularExponent"), specularExponent[0]);
+
+	glUniform1iv(glGetUniformLocation(program, "isDirectional"), 4, isDirectional);
+
+	glUniform3fv(glGetUniformLocation(program, "camPlacement"), 1, &camPlacement);
 
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "worldToProj"), 1, GL_TRUE
