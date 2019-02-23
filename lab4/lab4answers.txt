@@ -1,0 +1,12 @@
+1.1 Height values.
+1.2 0->255, 18 triangles!
+
+2. Change it to support mouse-movements for up/down and
+left/right movements. Used glutMotionFunc() instead of
+the passive function.
+
+3. Method 2)
+
+4.
+
+5. height dependent

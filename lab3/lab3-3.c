@@ -67,7 +67,7 @@ void controlFromKeyboard(vec3* camPlacement, vec3* pointToLookAt, vec3* upVector
 	vec3 up = *upVector;
 	vec3 forwardDirection = VectorSub(lookAt, cam);
 	vec3 rightDirection = CrossProduct(forwardDirection, up);
-	float rot = PI*0.02;
+	float rot = PI*0.01;
 	float scaling = 0.05;
 
 	if (glutKeyIsDown('w'))

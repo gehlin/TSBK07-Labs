@@ -17,7 +17,6 @@
 #include <math.h>
 #include "loadobj.h"
 #include "VectorUtils3.h"
-
 #define PI 3.14
 #define near 1.0
 #define far 100.0
